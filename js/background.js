@@ -14,7 +14,7 @@ function Background() {
 	background_layer = new CanvasLayer();
 	background_layer.init('background');
 
-	this.update = function() {
+	this.update = function(elapsed) {
 		this.x -= world_speed;
 		if (this.x < -this.WIDTH)
 			this.x = 0;

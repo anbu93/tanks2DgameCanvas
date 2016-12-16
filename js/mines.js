@@ -26,7 +26,7 @@ function Mines() {
 
 	this.isGameOver = undefined;
 
-	this.update = function() {
+	this.update = function(elapsed) {
 		for(var i = 0; i < this.pool.count; i++) {
 			var mine = this.pool.pool[i];
 			if (mine.isUsed) {

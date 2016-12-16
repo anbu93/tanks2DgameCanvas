@@ -15,8 +15,14 @@ function init() {
 	mines = new Mines();
 	Controller();
 	startLoop();
+	var elapsedTick = 1000 / 60;
+	var elapsedSec = elapsedTick / 1000.0;
+	setInterval(function (e) {
+		if (isRunning) update(elapsedSec);
+	}, elapsedTick);
 }
-function startLoop() {
+
+function startLoop() { 
 	isRunning = true;
 	loop();
 }
@@ -27,10 +33,10 @@ function loop() {
 		requestAnimFrame(loop);
 	}
 }
-function update() {
-	background.update();
-	player.update();
-	mines.update();
+function update(elapsed) {
+	background.update(elapsed);
+	player.update(elapsed);
+	mines.update(elapsed);
 }
 function draw(){
 	player.draw();

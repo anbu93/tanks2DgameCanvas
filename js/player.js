@@ -27,7 +27,7 @@ function Player() {
 	player_layer = new CanvasLayer();
 	player_layer.init('player');
 
-	this.update = function(){
+	this.update = function(elapsed){
 		if (this.isJumped){
 			this.verticalSpeed = this.JUMP_ACCELERATION;
 			this.isJumped = false;
