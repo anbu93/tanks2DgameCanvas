@@ -67,9 +67,9 @@ function Rectangle(x, y, w, h){
 }
 
 function gameReset() {
-	mines.x = GAME_WIDTH + 200;
-	mines.detonationTimer = mines.NOT_ACTIVATED;
-	this.x = 0;
-	background.x = 0;
+	mines.reset();
+	player.reset();
+	background.reset();
 	startLoop();
+	console.clear();
 }

@@ -25,4 +25,8 @@ function Background() {
 		for (var i = 0; i < this.count; i++)
 			this.sprite.draw(background_layer.context, this.x + this.WIDTH * i, 0, this.WIDTH, this.HEIGHT);
 	}
+
+	this.reset = function() {
+		this.x = 0;
+	}
 }

@@ -13,63 +13,87 @@ function Mines() {
 	this.WIDTH = 50;
 	this.HEIGHT = 60;
 	this.DETONATION_TIMER = 10;
-	this.mines_list = [];
+	this.MAX_MINE_SPAWN_TIMER = 200;
+	this.MIN_MINE_SPAWN_TIMER = 80;
+	this.pool = new MinePool();
+	this.y = GAME_HEIGHT - this.HEIGHT - 20;
 	this.sprite = new StaticSprite(mines_tileset, 0, 0, 200, 250);
 	this.boom_sprite = new StaticSprite(boom_tileset, 0, 0, 640, 428)
-	this.mineCollider = new Rectangle(10, 45, 30, 20);
-	this.y = GAME_HEIGHT - this.HEIGHT - 20;
-
+	this.mineCollider = new Rectangle(10, this.y + 45, 30, 20);
+	this.mineSpawnTimer = 0;
 	mines_layer = new CanvasLayer();
 	mines_layer.init('mines');
 
-	this.detonationTimer = this.NOT_ACTIVATED;
-	this.NOT_ACTIVATED = -1;
-	this.x = GAME_WIDTH;
+	this.isGameOver = undefined;
 
 	this.update = function() {
-		this.x -= world_speed;
-		if (this.x < -this.WIDTH)
-			this.x = GAME_WIDTH + 101;
-		if (this.detonationTimer != this.NOT_ACTIVATED)
-			this.detonationTimer -= 1;
-		if (this.getCollider().isCollised(player.getCollider()))
-			mines.detonate();
+		for(var i = 0; i < this.pool.count; i++) {
+			var mine = this.pool.pool[i];
+			if (mine.isUsed) {
+				if (mine.getCollider(this.mineCollider).isCollised(player.getCollider()))
+					mine.activate();
+				mine.update(1);
+			}
+		}
+		this.mineSpawnTimer--;
+		if (this.mineSpawnTimer <= 0){
+			if (isDebugMode)
+				console.log("mine spawned!");
+			this.mineSpawnTimer = 
+				this.MIN_MINE_SPAWN_TIMER + 
+				Math.random() * (this.MAX_MINE_SPAWN_TIMER - this.MIN_MINE_SPAWN_TIMER);
+			this.createMine();
+		}
 	}
 
 	this.draw = function() {
 		mines_layer.clear();
-		/*for (var mine in this.mines_list) {
-			this.sprite.draw(mines_layer.context, mine.x, this.y, this.WIDTH, this.HEIGHT);
-		}*/
-		this.sprite.draw(mines_layer.context, this.x, this.y, this.WIDTH, this.HEIGHT);
-		if (isDebugMode)
-			this.getCollider().draw(mines_layer.context, '#FF0000', false);
-		if (this.detonationTimer == 0) {
-			this.boom_sprite.draw(player_layer.context, this.x+this.WIDTH/2 - 160, GAME_HEIGHT - 224, 320, 214);
+		for(var i = 0; i < this.pool.count; i++) {
+			var mine = this.pool.pool[i];
+			if (mine.isUsed) {
+				this.sprite.draw(mines_layer.context, mine.x, this.y, this.WIDTH, this.HEIGHT);
+				if (isDebugMode)
+					mine.getCollider(this.mineCollider).draw(mines_layer.context, '#FF0000', false);
+			}
+		}
+		if (this.isGameOver != undefined) {
+			this.boom_sprite.draw(player_layer.context, 
+				this.isGameOver.x+this.WIDTH/2 - 160, GAME_HEIGHT - 224, 
+				320, 214);
 			stopLoop();
 		}
 	}
 
-	this.getCollider = function() {
-		return new Rectangle(this.x + this.mineCollider.x, this.y + this.mineCollider.y, 
-			this.mineCollider.w, this.mineCollider.h);
+	this.detonate = function(mine) {
+		this.isGameOver = mine;
+		if (isDebugMode)
+			console.log("mine x=" + mine.x + " detonated!");
+		this.pool.release(mine);
 	}
 
-	this.detonate = function() {
-		if (this.detonationTimer == this.NOT_ACTIVATED) //если это убрать - получается нажимная мина
-			this.detonationTimer = this.DETONATION_TIMER;
+	this.createMine = function() {
+		this.pool.get(GAME_WIDTH, this);
+	}
+
+	this.reset = function() {
+		this.pool.reset();
+		this.isGameOver = undefined;
+		this.mineSpawnTimer = 0;
 	}
 }
 
 
 function Mine(x, controller) {
+	this.isUsed = true;
 	this.controller = controller;
 	this.x = x;
 	this.detonationTimer = 0;
 	this.status = controller.STATUS_SLEEP;
 
 	this.update = function(elapsedTime) {
-		this.x -= worldSpeed;
+		this.x -= world_speed;
+		if (this.x < -controller.WIDTH)
+			this.isUsed = false;
 		if (this.status == controller.STATUS_ACTIVATED){
 			this.detonationTimer--;
 			if (this.detonationTimer == 0)
@@ -77,12 +101,59 @@ function Mine(x, controller) {
 		}
 	}
 
-	this.activate = function(){
-		if (this.status != this.controller.STATUS_SLEEP)
+	this.activate = function() {
+		if (this.status == this.controller.STATUS_SLEEP){
+			if (isDebugMode)
+				console.log("mine on x=" + this.x + " activated!");
 			this.detonationTimer = this.controller.DETONATION_TIMER;
+			this.status = controller.STATUS_ACTIVATED;
+		}
 	}
 
-	this.getCollider = function(rect){
+	this.getCollider = function(rect) {
 		return new Rectangle(this.x + rect.x, rect.y, rect.w, rect.h);
+	}
+
+	this.reset = function(x){
+		this.isUsed = true;
+		this.x = x;
+		this.detonationTimer = 0;
+		this.status = controller.STATUS_SLEEP;
+	}
+}
+
+
+function MinePool() {
+	this.pool = [];
+	this.count = 0;
+
+	this.get = function(x, controller) {
+		for(var i = 0; i < this.count; i++){
+			if (this.pool[i] == undefined){
+				console.log("Внутренняя ошибка пула: элемент " + i + " undefined!");
+				continue;
+			}
+			if (this.pool[i].isUsed == false){
+				this.pool[i].reset(x);
+				return this.pool[i];
+			}
+		}
+		this.pool.push(new Mine(x, controller));
+		this.count++;
+	}
+
+	this.release = function(mine) {
+		mine.isUsed = false;
+	}
+
+	this.forEach = function(func) {
+		for(var i = 0; i < this.count; i++)
+			if (this.pool[i].isUsed)
+				func(this.pool[i]);
+	}
+
+	this.reset = function() {
+		this.pool = [];
+		this.count = 0;
 	}
 }

@@ -76,4 +76,14 @@ function Player() {
 		if (this.isCanJump())
 				this.isJumped = true;
 	}
+
+	this.reset = function() {
+		this.isJumped = false;
+		this.x = 0;
+		this.y = this.LOWER_Y;
+		this.verticalSpeed = 0;
+		this.horizontalSpeed = 0;
+		this.isMoveLeft = false;
+		this.isMoveRight = false;
+	}
 }
