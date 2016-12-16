@@ -15,7 +15,7 @@ function Background() {
 	background_layer.init('background');
 
 	this.update = function(elapsed) {
-		this.x -= world_speed;
+		this.x = this.x - (world_speed * elapsed);
 		if (this.x < -this.WIDTH)
 			this.x = 0;
 	}

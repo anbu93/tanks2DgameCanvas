@@ -8,15 +8,16 @@ player_tileset.src = "img/t34.png";
 function Player() {
 	this.WIDTH = 320;
 	this.HEIGHT = 150;
-	this.GRAVITY = 0.4;
-	this.JUMP_ACCELERATION = 9;
-	this.MOVE_SPEED = 5;
+	this.GRAVITY = 30; // pixels per cuadro seconds
+	this.JUMP_ACCELERATION = 600; //pixels per cuadro seconds
+	this.MOVE_SPEED = 200; //pixels per seconds
+	this.SPEED_TO_ANGLE_KOEFFICIENT = 0.015;
 	this.LOWER_Y = GAME_HEIGHT - this.HEIGHT;
 	this.isJumped = false;
 	this.x = 0;
 	this.y = this.LOWER_Y;
-	this.verticalSpeed = 0;
-	this.horizontalSpeed = 0;
+	this.verticalSpeed = 0; //in pixels per seconds
+	this.horizontalSpeed = 0; //in pixels per seconds
 	this.isMoveLeft = false;
 	this.isMoveRight = false;
 
@@ -33,8 +34,8 @@ function Player() {
 			this.isJumped = false;
 		}
 		if ((this.verticalSpeed != 0) || (this.y != this.LOWER_Y)){
-			this.verticalSpeed -= this.GRAVITY;
-			this.y -= this.verticalSpeed;
+			this.verticalSpeed = this.verticalSpeed - this.GRAVITY;
+			this.y = this.y - this.verticalSpeed * elapsed;
 			if (this.y > this.LOWER_Y){
 				this.y = this.LOWER_Y;
 				this.verticalSpeed = 0;
@@ -42,9 +43,9 @@ function Player() {
 		}
 		this.horizontalSpeed = 0;
 		if (this.isMoveRight)
-			this.horizontalSpeed += this.MOVE_SPEED * 0.5;
+			this.horizontalSpeed += this.MOVE_SPEED * elapsed;
 		if (this.isMoveLeft)
-			this.horizontalSpeed -= this.MOVE_SPEED;
+			this.horizontalSpeed -= world_speed * elapsed;
 		this.x += this.horizontalSpeed;
 		if (this.x < 0)
 			this.x = 0;
@@ -58,7 +59,7 @@ function Player() {
 			this.sprite.draw(player_layer.context, this.x, this.y, this.WIDTH, this.HEIGHT);
 		else
 			this.sprite.drawRotated(player_layer.context, this.x, this.y, 
-				this.WIDTH, this.HEIGHT, -this.verticalSpeed);
+				this.WIDTH, this.HEIGHT, -this.verticalSpeed * this.SPEED_TO_ANGLE_KOEFFICIENT);
 		if (isDebugMode) 
 			this.getCollider().draw(player_layer.context, '#FF0000', false);
 	}

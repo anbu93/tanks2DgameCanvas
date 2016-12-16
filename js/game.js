@@ -7,7 +7,8 @@ var requestAnimFrame = window.requestAnimationFrame ||
 								window.mozRequestAnimationFrame ||
 								window.oRequestAnimationFrame ||
 								window.msRequestAnimationFrame;
-var world_speed = 7;
+var world_speed = 300; //pixels per seconds
+var frames_per_seconds = 60;
 var isDebugMode = true;
 function init() {
 	player = new Player();
@@ -15,8 +16,8 @@ function init() {
 	mines = new Mines();
 	Controller();
 	startLoop();
-	var elapsedTick = 1000 / 60;
-	var elapsedSec = elapsedTick / 1000.0;
+	var elapsedTick = 1000 / frames_per_seconds;
+	var elapsedSec =  1.0 / frames_per_seconds;
 	setInterval(function (e) {
 		if (isRunning) update(elapsedSec);
 	}, elapsedTick);
@@ -29,7 +30,6 @@ function startLoop() {
 function loop() {
 	if (isRunning){
 		draw();
-		update();
 		requestAnimFrame(loop);
 	}
 }

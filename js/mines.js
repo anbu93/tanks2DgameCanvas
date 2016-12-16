@@ -12,15 +12,15 @@ function Mines() {
 	this.STATUS_SLEEP = 3;
 	this.WIDTH = 50;
 	this.HEIGHT = 60;
-	this.DETONATION_TIMER = 10;
-	this.MAX_MINE_SPAWN_TIMER = 200;
-	this.MIN_MINE_SPAWN_TIMER = 80;
+	this.DETONATION_TIMER = 0.25; //seconds
+	this.MAX_MINE_SPAWN_TIMER = 4; // seconds
+	this.MIN_MINE_SPAWN_TIMER = 2; //seconds
+	this.mineSpawnTimer = 0; //seconds
 	this.pool = new MinePool();
 	this.y = GAME_HEIGHT - this.HEIGHT - 20;
 	this.sprite = new StaticSprite(mines_tileset, 0, 0, 200, 250);
 	this.boom_sprite = new StaticSprite(boom_tileset, 0, 0, 640, 428)
 	this.mineCollider = new Rectangle(10, this.y + 45, 30, 20);
-	this.mineSpawnTimer = 0;
 	mines_layer = new CanvasLayer();
 	mines_layer.init('mines');
 
@@ -32,10 +32,10 @@ function Mines() {
 			if (mine.isUsed) {
 				if (mine.getCollider(this.mineCollider).isCollised(player.getCollider()))
 					mine.activate();
-				mine.update(1);
+				mine.update(elapsed);
 			}
 		}
-		this.mineSpawnTimer--;
+		this.mineSpawnTimer-= elapsed;
 		if (this.mineSpawnTimer <= 0){
 			if (isDebugMode)
 				console.log("mine spawned!");
@@ -87,16 +87,16 @@ function Mine(x, controller) {
 	this.isUsed = true;
 	this.controller = controller;
 	this.x = x;
-	this.detonationTimer = 0;
+	this.detonationTimer = 0; // in seconds
 	this.status = controller.STATUS_SLEEP;
 
-	this.update = function(elapsedTime) {
-		this.x -= world_speed;
+	this.update = function(elapsed) {
+		this.x -= world_speed * elapsed;
 		if (this.x < -controller.WIDTH)
 			this.isUsed = false;
 		if (this.status == controller.STATUS_ACTIVATED){
-			this.detonationTimer--;
-			if (this.detonationTimer == 0)
+			this.detonationTimer-= elapsed;
+			if (this.detonationTimer <= 0)
 				this.controller.detonate(this);
 		}
 	}

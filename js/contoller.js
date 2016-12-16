@@ -2,7 +2,7 @@ var controller;
 
 function Controller() {
 	this.clickEvent = function() {
-		player.jump();
+		//player.jump();
 	}
 	this.keyDownEvent = function(e) {
 		var keyID = e.keyCode || e.wich;
