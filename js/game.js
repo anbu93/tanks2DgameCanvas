@@ -8,7 +8,7 @@ var requestAnimFrame = window.requestAnimationFrame ||
 								window.oRequestAnimationFrame ||
 								window.msRequestAnimationFrame;
 var world_speed = 300; //pixels per seconds
-var frames_per_seconds = 60;
+var frames_per_seconds = 300;
 var isDebugMode = true;
 function init() {
 	player = new Player();

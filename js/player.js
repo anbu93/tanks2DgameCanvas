@@ -8,7 +8,7 @@ player_tileset.src = "img/t34.png";
 function Player() {
 	this.WIDTH = 320;
 	this.HEIGHT = 150;
-	this.GRAVITY = 30; // pixels per cuadro seconds
+	this.GRAVITY = 2000; // pixels per cuadro seconds
 	this.JUMP_ACCELERATION = 600; //pixels per cuadro seconds
 	this.MOVE_SPEED = 200; //pixels per seconds
 	this.SPEED_TO_ANGLE_KOEFFICIENT = 0.015;
@@ -20,10 +20,9 @@ function Player() {
 	this.horizontalSpeed = 0; //in pixels per seconds
 	this.isMoveLeft = false;
 	this.isMoveRight = false;
-
 	this.trackCollider = new Rectangle(60, 100, 150, 30);
-
 	this.sprite = new StaticSprite(player_tileset, 0, 0, 1280, 700);
+	
 	// constructor
 	player_layer = new CanvasLayer();
 	player_layer.init('player');
@@ -34,7 +33,7 @@ function Player() {
 			this.isJumped = false;
 		}
 		if ((this.verticalSpeed != 0) || (this.y != this.LOWER_Y)){
-			this.verticalSpeed = this.verticalSpeed - this.GRAVITY;
+			this.verticalSpeed = this.verticalSpeed - this.GRAVITY * elapsed;
 			this.y = this.y - this.verticalSpeed * elapsed;
 			if (this.y > this.LOWER_Y){
 				this.y = this.LOWER_Y;
