@@ -12,7 +12,7 @@ function Player(height) {
 	this.SPEED_TO_ANGLE_KOEFFICIENT = 0.015;
 	this.LOWER_Y = height - this.HEIGHT - 20;
 	this.trackCollider = new Rectangle(50, 70, 130, 30); // 60 100 150 30
-	this.sprite = new StaticSprite(player_tileset, 0, 0, 835, 355);
+	this.sprite = new StaticSprite(player_tileset, 0, 0, 832, 355);
 	this.x = 0;
 	this.y = this.LOWER_Y;
 	// for moving
