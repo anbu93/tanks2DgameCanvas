@@ -1,5 +1,4 @@
 var mines;
-var mines_layer;
 
 var mines_tileset = new Image();
 mines_tileset.src = "img/Mine.png";
@@ -21,8 +20,6 @@ function Mines() {
 	this.sprite = new StaticSprite(mines_tileset, 0, 0, 200, 250);
 	this.boom_sprite = new StaticSprite(boom_tileset, 0, 0, 640, 428)
 	this.mineCollider = new Rectangle(10, this.y + 45, 30, 20);
-	mines_layer = new CanvasLayer();
-	mines_layer.init('mines');
 
 	this.isGameOver = undefined;
 
@@ -46,18 +43,17 @@ function Mines() {
 		}
 	}
 
-	this.draw = function() {
-		mines_layer.clear();
+	this.draw = function(context) {
 		for(var i = 0; i < this.pool.count; i++) {
 			var mine = this.pool.pool[i];
 			if (mine.isUsed) {
-				this.sprite.draw(mines_layer.context, mine.x, this.y, this.WIDTH, this.HEIGHT);
+				this.sprite.draw(context, mine.x, this.y, this.WIDTH, this.HEIGHT);
 				if (isDebugMode)
-					mine.getCollider(this.mineCollider).draw(mines_layer.context, '#FF0000', false);
+					mine.getCollider(this.mineCollider).draw(context, '#FF0000', false);
 			}
 		}
 		if (this.isGameOver != undefined) {
-			this.boom_sprite.draw(player_layer.context, 
+			this.boom_sprite.draw(context, 
 				this.isGameOver.x+this.WIDTH/2 - 160, GAME_HEIGHT - 224, 
 				320, 214);
 			stopLoop();
@@ -65,7 +61,8 @@ function Mines() {
 	}
 
 	this.detonate = function(mine) {
-		this.isGameOver = mine;
+		if (isBombCanDetonated)
+			this.isGameOver = mine;
 		if (isDebugMode)
 			console.log("mine x=" + mine.x + " detonated!");
 		this.pool.release(mine);

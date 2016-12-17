@@ -1,5 +1,4 @@
 var player;
-var player_layer;
 
 var player_tileset = new Image();
 player_tileset.src = "img/t34.png";
@@ -20,12 +19,8 @@ function Player() {
 	this.horizontalSpeed = 0; //in pixels per seconds
 	this.isMoveLeft = false;
 	this.isMoveRight = false;
-	this.trackCollider = new Rectangle(60, 100, 150, 30);
+	this.trackCollider = new Rectangle(75, 100, 130, 30); // 60 100 150 30
 	this.sprite = new StaticSprite(player_tileset, 0, 0, 1280, 700);
-	
-	// constructor
-	player_layer = new CanvasLayer();
-	player_layer.init('player');
 
 	this.update = function(elapsed){
 		if (this.isJumped){
@@ -52,15 +47,14 @@ function Player() {
 			this.x = GAME_WIDTH - this.WIDTH;
 	}
 
-	this.draw = function() {
-		player_layer.clear();
+	this.draw = function(context) {
 		if (this.verticalSpeed == 0)
-			this.sprite.draw(player_layer.context, this.x, this.y, this.WIDTH, this.HEIGHT);
+			this.sprite.draw(context, this.x, this.y, this.WIDTH, this.HEIGHT);
 		else
-			this.sprite.drawRotated(player_layer.context, this.x, this.y, 
+			this.sprite.drawRotated(context, this.x, this.y, 
 				this.WIDTH, this.HEIGHT, -this.verticalSpeed * this.SPEED_TO_ANGLE_KOEFFICIENT);
 		if (isDebugMode) 
-			this.getCollider().draw(player_layer.context, '#FF0000', false);
+			this.getCollider().draw(context, '#FF0000', false);
 	}
 
 	this.getCollider = function() {

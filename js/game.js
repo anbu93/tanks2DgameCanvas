@@ -9,73 +9,56 @@ var requestAnimFrame = window.requestAnimationFrame ||
 								window.msRequestAnimationFrame;
 var world_speed = 300; //pixels per seconds
 var frames_per_seconds = 300;
-var isDebugMode = true;
+var elapsedSec =  1.0 / frames_per_seconds;
+// для разработчика
+var isDebugMode = true; //включает режим дебагинга (отображает коллайдеры)
+var isBombCanDetonated = true; //выключает взрыв мин.
+
 function init() {
 	player = new Player();
 	background = new Background();
 	mines = new Mines();
+	canvas = new CanvasLayer();
+	canvas.init('game');
 	Controller();
 	startLoop();
-	var elapsedTick = 1000 / frames_per_seconds;
-	var elapsedSec =  1.0 / frames_per_seconds;
 	setInterval(function (e) {
-		if (isRunning) update(elapsedSec);
-	}, elapsedTick);
+		if (isRunning) update();
+	}, 1000 / frames_per_seconds);
 }
 
 function startLoop() { 
 	isRunning = true;
 	loop();
 }
+
 function loop() {
 	if (isRunning){
 		draw();
 		requestAnimFrame(loop);
 	}
 }
-function update(elapsed) {
-	background.update(elapsed);
-	player.update(elapsed);
-	mines.update(elapsed);
+function update() {
+	world_speed += 10 * elapsedSec; // increment 10 pixels/seconds in seconds.
+	background.update(elapsedSec);
+	player.update(elapsedSec);
+	mines.update(elapsedSec);
 }
 function draw(){
-	player.draw();
-	background.draw();
-	mines.draw();
+	canvas.clear();
+	player.draw(canvas.context);
+	background.draw(canvas.context);
+	mines.draw(canvas.context);
 }
 function stopLoop() {
 	isRunning = false;
-}
-
-function Rectangle(x, y, w, h){
-	this.x = x;
-	this.y = y;
-	this.w = w;
-	this.h = h;
-
-	this.isCollised = function(rect){
-		var dx = Math.abs((this.x + this.w/2) - (rect.x + rect.w/2));
-		var dy = Math.abs((this.y + this.h/2) - (rect.y + rect.h/2));
-		var widths = this.w/2 + rect.w/2;
-		var heights = this.h/2 + rect.h/2;
-		return dx < widths && dy < heights;
-	}
-
-
-	this.draw = function(context, color, fill) {
-		context.strokeStyle = color;
-		context.strokeRect(this.x, this.y, this.w, this.h);
-		if (fill) {
-			context.fillStyle = color;
-			context.fill();
-		}
-	}
 }
 
 function gameReset() {
 	mines.reset();
 	player.reset();
 	background.reset();
+	world_speed = 300;
 	startLoop();
 	console.clear();
 }

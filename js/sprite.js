@@ -1,3 +1,5 @@
+var canvas;
+
 function CanvasLayer() {
 	this.canvas;
 	this.context;
