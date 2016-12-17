@@ -25,16 +25,19 @@ function Player(height) {
 	this.CANNON_MAX_UP_ANGLE = 20; // degrees
 	this.CANNON_MAX_DOWN_ANGLE = 10; // degrees
 	this.CANNON_MAX_SPEED = 10; // degrees in second
-	this.CANNON_RELOAD_TIME = 5; // seconds
+	this.CANNON_RELOAD_TIME = 2.5; // seconds
 	this.cannon_sprite = new StaticSprite(player_tileset, 45, 370, 425, 50);
-	this.cannon_angle = 0;
+	this.cannon_fire_sprite = new StaticSprite(player_tileset, 0, 425, 150, 250);
 	this.cannon_rect = new Rectangle(65, -27, 119.718, 14.08451);
+	this.cannon_fire_rect = new Rectangle(0, -75, 150, 250);
+	this.cannon_angle = 0;
 	this.isCannonUp = false;
 	this.isCannonDown = false;
 	this.isCanFire = true;
 	this.isFireSignaled = false;
 	this.cannon_reloading_timer = 0;
-
+	this.isCannonFireShow = false;
+	this.cannonFireShowTimer = new Timer(0.25); // seconds
 	player = this;
 	
 	this.update = function(elapsed){
@@ -71,6 +74,23 @@ function Player(height) {
 			this.cannon_angle = -this.CANNON_MAX_UP_ANGLE;
 		if (this.cannon_angle > this.CANNON_MAX_DOWN_ANGLE)
 			this.cannon_angle = this.CANNON_MAX_DOWN_ANGLE;
+		// reloading
+		if (this.cannon_reloading_timer > 0){
+			this.isCanFire = false;
+			this.cannon_reloading_timer -= elapsed;
+			if (this.cannon_reloading_timer <= 0){
+				this.cannon_reloading_timer = 0;
+				this.isCanFire = true;
+			}
+		}
+		// fire
+		if (this.isFireSignaled){
+			this.isFireSignaled = false;
+			this.cannon_reloading_timer = this.CANNON_RELOAD_TIME;
+			this.cannonFireShowTimer.start();
+		}
+		if (this.cannonFireShowTimer.isFinished == false)
+			this.cannonFireShowTimer.update(elapsed);
 	}
 
 	this.draw = function(context) {
@@ -85,6 +105,10 @@ function Player(height) {
 		context.rotate(this.cannon_angle * TO_RADIANS);
 		this.cannon_sprite.draw(context, 0, -this.cannon_rect.h/2,
 			this.cannon_rect.w, this.cannon_rect.h);
+		if (this.cannonFireShowTimer.isFinished == false) // show cannon fire
+			this.cannon_fire_sprite.draw(context, 
+				this.cannon_rect.w + this.cannon_fire_rect.x, this.cannon_fire_rect.y, 
+				this.cannon_fire_rect.w, this.cannon_fire_rect.h);
 		context.restore();
 		this.sprite.draw(context, -this.WIDTH/2, -this.HEIGHT/2, this.WIDTH, this.HEIGHT);
 		context.restore();

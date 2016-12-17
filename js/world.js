@@ -16,7 +16,7 @@ function World(width, height) {
 		this.background.update(elapsed);
 		this.player.update(elapsed);
 		this.mineController.update(elapsed);
-		this.speed += 10 * elapsedSec; 
+		this.speed += this.acceleration * elapsedSec; 
 	}
 
 	this.render = function(canvas) {

@@ -50,3 +50,22 @@ function gameReset() {
 	startLoop();
 	console.clear();
 }
+
+
+function Timer(value) {
+	this.startValue = value;
+	this.current = 0;
+	this.isFinished = true;
+
+	this.update = function(elapsed){
+		this.current -= elapsed;
+		if (this.current <= 0)
+			this.isFinished = true;
+	}
+
+	this.start = function() {
+		this.current = this.startValue;
+		this.isFinished = false;
+	}
+
+}
