@@ -1,5 +1,4 @@
 var background;
-var background_layer;
 
 var background_tileset = new Image();
 background_tileset.src = "img/bg2.png";
@@ -11,19 +10,15 @@ function Background() {
 	this.x = 0;
 	this.sprite = new StaticSprite(background_tileset, 0, 0, 900, 540);
 
-	background_layer = new CanvasLayer();
-	background_layer.init('background');
-
 	this.update = function(elapsed) {
-		this.x = this.x - (world_speed * elapsed);
+		this.x = this.x - (world.speed * elapsed);
 		if (this.x < -this.WIDTH)
 			this.x = 0;
 	}
 
-	this.draw = function() {
-		background_layer.clear();
+	this.draw = function(context) {
 		for (var i = 0; i < this.count; i++)
-			this.sprite.draw(background_layer.context, this.x + this.WIDTH * i, 0, this.WIDTH, this.HEIGHT);
+			this.sprite.draw(context, this.x + this.WIDTH * i, 0, this.WIDTH, this.HEIGHT);
 	}
 
 	this.reset = function() {

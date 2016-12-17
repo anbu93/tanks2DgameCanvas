@@ -5,7 +5,7 @@ mines_tileset.src = "img/Mine.png";
 var boom_tileset = new Image();
 boom_tileset.src = "img/boom.png";
 
-function Mines() {
+function MinesController(player) {
 	this.STATUS_DETONATED = 1;
 	this.STATUS_ACTIVATED = 2;
 	this.STATUS_SLEEP = 3;
@@ -16,6 +16,7 @@ function Mines() {
 	this.MIN_MINE_SPAWN_TIMER = 2; //seconds
 	this.mineSpawnTimer = 0; //seconds
 	this.pool = new MinePool();
+	this.player = player;
 	this.y = GAME_HEIGHT - this.HEIGHT - 20;
 	this.sprite = new StaticSprite(mines_tileset, 0, 0, 200, 250);
 	this.boom_sprite = new StaticSprite(boom_tileset, 0, 0, 640, 428)
@@ -27,7 +28,7 @@ function Mines() {
 		for(var i = 0; i < this.pool.count; i++) {
 			var mine = this.pool.pool[i];
 			if (mine.isUsed) {
-				if (mine.getCollider(this.mineCollider).isCollised(player.getCollider()))
+				if (mine.getCollider(this.mineCollider).isCollised(this.player.getCollider()))
 					mine.activate();
 				mine.update(elapsed);
 			}
@@ -88,7 +89,7 @@ function Mine(x, controller) {
 	this.status = controller.STATUS_SLEEP;
 
 	this.update = function(elapsed) {
-		this.x -= world_speed * elapsed;
+		this.x -= world.speed * elapsed;
 		if (this.x < -controller.WIDTH)
 			this.isUsed = false;
 		if (this.status == controller.STATUS_ACTIVATED){

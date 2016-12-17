@@ -1,4 +1,5 @@
 var canvas;
+var TO_RADIANS = Math.PI/180; 
 
 function CanvasLayer() {
 	this.canvas;

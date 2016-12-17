@@ -7,7 +7,6 @@ var requestAnimFrame = window.requestAnimationFrame ||
 								window.mozRequestAnimationFrame ||
 								window.oRequestAnimationFrame ||
 								window.msRequestAnimationFrame;
-var world_speed = 300; //pixels per seconds
 var frames_per_seconds = 300;
 var elapsedSec =  1.0 / frames_per_seconds;
 // для разработчика
@@ -15,12 +14,9 @@ var isDebugMode = true; //включает режим дебагинга (ото
 var isBombCanDetonated = true; //выключает взрыв мин.
 
 function init() {
-	player = new Player();
-	background = new Background();
-	mines = new Mines();
 	canvas = new CanvasLayer();
 	canvas.init('game');
-	Controller();
+	world = new World(GAME_WIDTH, GAME_HEIGHT);
 	startLoop();
 	setInterval(function (e) {
 		if (isRunning) update();
@@ -34,31 +30,23 @@ function startLoop() {
 
 function loop() {
 	if (isRunning){
-		draw();
+		render();
 		requestAnimFrame(loop);
 	}
 }
 function update() {
-	world_speed += 10 * elapsedSec; // increment 10 pixels/seconds in seconds.
-	background.update(elapsedSec);
-	player.update(elapsedSec);
-	mines.update(elapsedSec);
+	world.update(elapsedSec);
 }
-function draw(){
+function render(){
 	canvas.clear();
-	player.draw(canvas.context);
-	background.draw(canvas.context);
-	mines.draw(canvas.context);
+	world.render(canvas.context);
 }
 function stopLoop() {
 	isRunning = false;
 }
 
 function gameReset() {
-	mines.reset();
-	player.reset();
-	background.reset();
-	world_speed = 300;
+	world.reset();
 	startLoop();
 	console.clear();
 }
