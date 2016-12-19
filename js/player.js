@@ -15,6 +15,14 @@ function Player(height) {
 	this.trackCollider = new Rectangle(50, 70, 130, 30); // 60 100 150 30
 	this.x = 0;
 	this.y = this.LOWER_Y;
+	// reloading message
+	this.reloadingMessageTimer = new Timer(1.0); // show seconds
+	this.reloadingMessageSprite = new StaticSprite(player_tileset, 250, 510, 330, 60);
+	this.reloadingMessageRect = new Rectangle(40, -80, 165, 30);
+	// reloaded message
+	this.reloadedMessageTimer = new Timer(1.0);
+	this.reloadedMessageSprite = new StaticSprite(player_tileset, 250, 450, 330, 60);
+	this.isReloadingStarted = false;
 	// for moving
 	this.isJumped = false;
 	this.verticalSpeed = 0; //in pixels per seconds
@@ -51,6 +59,15 @@ function Player(height) {
 		if (this.x > GAME_WIDTH - this.WIDTH)
 			this.x = GAME_WIDTH - this.WIDTH;
 		this.cannon.update(elapsed);
+		if (this.reloadingMessageTimer.isFinished == false)
+			this.reloadingMessageTimer.update(elapsed);
+		if (this.isReloadingStarted && this.cannon.reloadingTimer.isFinished == true){
+			this.isReloadingStarted = false;
+			this.reloadedMessageTimer.start();
+			this.reloadingMessageTimer.stop();
+		}
+		if (this.reloadedMessageTimer.isFinished == false)
+			this.reloadedMessageTimer.update(elapsed);
 	}
 
 	this.draw = function(context) {
@@ -62,6 +79,15 @@ function Player(height) {
 		}
 		this.cannon.draw(context);
 		this.sprite.draw(context, -this.WIDTH/2, -this.HEIGHT/2, this.WIDTH, this.HEIGHT);
+		context.restore();
+		context.save();
+		context.translate(this.x + this.WIDTH/2, this.y + this.HEIGHT/2);
+		if (this.reloadedMessageTimer.isFinished == false)
+			this.reloadedMessageSprite.draw(context, this.reloadingMessageRect.x, this.reloadingMessageRect.y,
+				this.reloadingMessageRect.w, this.reloadingMessageRect.h);
+		else if (this.reloadingMessageTimer.isFinished == false)
+			this.reloadingMessageSprite.draw(context, this.reloadingMessageRect.x, this.reloadingMessageRect.y,
+				this.reloadingMessageRect.w, this.reloadingMessageRect.h);
 		context.restore();
 		if (isDebugMode) 
 			this.getCollider().draw(context, '#FF0000', false);
@@ -81,7 +107,10 @@ function Player(height) {
 	}
 
 	this.fire = function() {
-		this.cannon.fire();
+		if (this.cannon.fire() == false)
+			this.reloadingMessageTimer.start();
+		else 
+			this.isReloadingStarted = true;
 	}
 
 	this.reset = function() {
@@ -92,6 +121,7 @@ function Player(height) {
 		this.horizontalSpeed = 0;
 		this.isMoveLeft = false;
 		this.isMoveRight = false;
+		this.reloadingMessageTimer.stop();
 		this.cannon.reset();
 	}
 
@@ -156,8 +186,11 @@ function Cannon() {
 	}
 
 	this.fire = function(){
-		if (this.reloadingTimer.isFinished)
+		if (this.reloadingTimer.isFinished){
 			this.isFireSignaled = true;
+			return true;
+		}
+		return false;
 	}
 
 	this.reset = function() {
