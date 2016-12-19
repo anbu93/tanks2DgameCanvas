@@ -1,5 +1,4 @@
 var player_tileset = new Image();
-//player_tileset.src = "img/t34.png";
 player_tileset.src = "img/TankT34.png";
 var player;
 
@@ -11,8 +10,9 @@ function Player(height) {
 	this.MOVE_SPEED = 200; //pixels per seconds
 	this.SPEED_TO_ANGLE_KOEFFICIENT = 0.015;
 	this.LOWER_Y = height - this.HEIGHT - 20;
-	this.trackCollider = new Rectangle(50, 70, 130, 30); // 60 100 150 30
+	
 	this.sprite = new StaticSprite(player_tileset, 0, 0, 832, 355);
+	this.trackCollider = new Rectangle(50, 70, 130, 30); // 60 100 150 30
 	this.x = 0;
 	this.y = this.LOWER_Y;
 	// for moving
@@ -21,23 +21,8 @@ function Player(height) {
 	this.horizontalSpeed = 0; //in pixels per seconds
 	this.isMoveLeft = false;
 	this.isMoveRight = false;
-	// for cannon module
-	this.CANNON_MAX_UP_ANGLE = 20; // degrees
-	this.CANNON_MAX_DOWN_ANGLE = 10; // degrees
-	this.CANNON_MAX_SPEED = 10; // degrees in second
-	this.CANNON_RELOAD_TIME = 2.5; // seconds
-	this.cannon_sprite = new StaticSprite(player_tileset, 45, 370, 425, 50);
-	this.cannon_fire_sprite = new StaticSprite(player_tileset, 0, 425, 150, 250);
-	this.cannon_rect = new Rectangle(65, -27, 119.718, 14.08451);
-	this.cannon_fire_rect = new Rectangle(0, -75, 150, 250);
-	this.cannon_angle = 0;
-	this.isCannonUp = false;
-	this.isCannonDown = false;
-	this.isCanFire = true;
-	this.isFireSignaled = false;
-	this.cannon_reloading_timer = 0;
-	this.isCannonFireShow = false;
-	this.cannonFireShowTimer = new Timer(0.25); // seconds
+	// cannon module
+	this.cannon = new Cannon();
 	player = this;
 	
 	this.update = function(elapsed){
@@ -65,32 +50,7 @@ function Player(height) {
 			this.x = 0;
 		if (this.x > GAME_WIDTH - this.WIDTH)
 			this.x = GAME_WIDTH - this.WIDTH;
-		// cannon
-		var cannon_angle_speed = 0;
-		if (this.isCannonUp) cannon_angle_speed -= this.CANNON_MAX_SPEED;
-		if (this.isCannonDown) cannon_angle_speed += this.CANNON_MAX_SPEED;
-		this.cannon_angle += cannon_angle_speed * elapsed;
-		if (this.cannon_angle < -this.CANNON_MAX_UP_ANGLE)
-			this.cannon_angle = -this.CANNON_MAX_UP_ANGLE;
-		if (this.cannon_angle > this.CANNON_MAX_DOWN_ANGLE)
-			this.cannon_angle = this.CANNON_MAX_DOWN_ANGLE;
-		// reloading
-		if (this.cannon_reloading_timer > 0){
-			this.isCanFire = false;
-			this.cannon_reloading_timer -= elapsed;
-			if (this.cannon_reloading_timer <= 0){
-				this.cannon_reloading_timer = 0;
-				this.isCanFire = true;
-			}
-		}
-		// fire
-		if (this.isFireSignaled){
-			this.isFireSignaled = false;
-			this.cannon_reloading_timer = this.CANNON_RELOAD_TIME;
-			this.cannonFireShowTimer.start();
-		}
-		if (this.cannonFireShowTimer.isFinished == false)
-			this.cannonFireShowTimer.update(elapsed);
+		this.cannon.update(elapsed);
 	}
 
 	this.draw = function(context) {
@@ -100,16 +60,7 @@ function Player(height) {
 			var angle = -this.verticalSpeed * this.SPEED_TO_ANGLE_KOEFFICIENT;
 			context.rotate(angle * TO_RADIANS);
 		}
-		context.save();
-		context.translate(this.cannon_rect.x, this.cannon_rect.y);
-		context.rotate(this.cannon_angle * TO_RADIANS);
-		this.cannon_sprite.draw(context, 0, -this.cannon_rect.h/2,
-			this.cannon_rect.w, this.cannon_rect.h);
-		if (this.cannonFireShowTimer.isFinished == false) // show cannon fire
-			this.cannon_fire_sprite.draw(context, 
-				this.cannon_rect.w + this.cannon_fire_rect.x, this.cannon_fire_rect.y, 
-				this.cannon_fire_rect.w, this.cannon_fire_rect.h);
-		context.restore();
+		this.cannon.draw(context);
 		this.sprite.draw(context, -this.WIDTH/2, -this.HEIGHT/2, this.WIDTH, this.HEIGHT);
 		context.restore();
 		if (isDebugMode) 
@@ -130,10 +81,7 @@ function Player(height) {
 	}
 
 	this.fire = function() {
-		if (this.isCanFire) {
-			this.isFireSignaled = true;
-			console.log("FIRE!!!");
-		}
+		this.cannon.fire();
 	}
 
 	this.reset = function() {
@@ -144,6 +92,80 @@ function Player(height) {
 		this.horizontalSpeed = 0;
 		this.isMoveLeft = false;
 		this.isMoveRight = false;
+		this.cannon.reset();
 	}
 
+}
+
+
+function Cannon() {
+	this.sprite = new StaticSprite(player_tileset, 45, 370, 425, 50);
+	this.fire_sprite = new StaticSprite(player_tileset, 0, 425, 200, 250);
+
+	this.MAX_UP_ANGLE = 20; // degrees
+	this.MAX_DOWN_ANGLE = 10; // degrees
+	this.MAX_SPEED = 10; // degrees in second
+	this.FIRE_X_DIFF = 5; // pixels
+
+	this.angle = 0;
+	this.cannon_rect = new Rectangle(65, -27, 119.718, 14.08451);
+	this.fire_rect = new Rectangle(0, -75, 150, 250);
+	this.reloadingTimer = new Timer(2.5); // seconds
+	this.fireShowTimer = new Timer(0.10); // seconds
+	// for control
+	this.isCannonUp = false;
+	this.isCannonDown = false;
+	this.isFireSignaled = false;
+
+	this.update = function(elapsed){
+		// cannon move
+		var angle_speed = 0;
+		if (this.isCannonUp) angle_speed -= this.MAX_SPEED;
+		if (this.isCannonDown) angle_speed += this.MAX_SPEED;
+		this.angle += angle_speed * elapsed;
+		if (this.angle < -this.MAX_UP_ANGLE) this.angle = -this.MAX_UP_ANGLE;
+		if (this.angle > this.MAX_DOWN_ANGLE) this.angle = this.MAX_DOWN_ANGLE;
+		// reloading timer
+		if (this.reloadingTimer.isFinished == false)
+			this.reloadingTimer.update(elapsed);
+		// fire signal
+		if (this.isFireSignaled){
+			this.isFireSignaled = false;
+			this.reloadingTimer.start();
+			this.fireShowTimer.start();
+		}
+		// fire show timer
+		if (this.fireShowTimer.isFinished == false)
+			this.fireShowTimer.update(elapsed);
+	}
+
+	this.draw = function(context) {
+		context.save();
+		context.translate(this.cannon_rect.x, this.cannon_rect.y);
+		context.rotate(this.angle * TO_RADIANS);
+		var xDifferentForFired = 0;
+		if (this.fireShowTimer.isFinished == false)
+			xDifferentForFired = -this.FIRE_X_DIFF;
+		this.sprite.draw(context, xDifferentForFired, -this.cannon_rect.h/2,
+			this.cannon_rect.w, this.cannon_rect.h);
+		if (this.fireShowTimer.isFinished == false) // show cannon fire
+			this.fire_sprite.draw(context, 
+				this.cannon_rect.w + this.fire_rect.x, this.fire_rect.y, 
+				this.fire_rect.w, this.fire_rect.h);
+		context.restore();
+	}
+
+	this.fire = function(){
+		if (this.reloadingTimer.isFinished)
+			this.isFireSignaled = true;
+	}
+
+	this.reset = function() {
+		this.angle = 0;
+		this.reloadingTimer.stop();
+		this.fireShowTimer.stop();
+		this.isCannonUp = false;
+		this.isCannonDown = false;
+		this.isFireSignaled = false;
+	}
 }

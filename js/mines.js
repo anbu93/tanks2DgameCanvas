@@ -11,7 +11,6 @@ function MinesController(player) {
 	this.STATUS_SLEEP = 3;
 	this.WIDTH = 50;
 	this.HEIGHT = 60;
-	this.DETONATION_TIMER = 0.25; //seconds
 	this.MAX_MINE_SPAWN_TIMER = 4; // seconds
 	this.MIN_MINE_SPAWN_TIMER = 2; //seconds
 	this.mineSpawnTimer = 0; //seconds
@@ -35,8 +34,6 @@ function MinesController(player) {
 		}
 		this.mineSpawnTimer-= elapsed;
 		if (this.mineSpawnTimer <= 0){
-			if (isDebugMode)
-				console.log("mine spawned!");
 			this.mineSpawnTimer = 
 				this.MIN_MINE_SPAWN_TIMER + 
 				Math.random() * (this.MAX_MINE_SPAWN_TIMER - this.MIN_MINE_SPAWN_TIMER);
@@ -64,8 +61,6 @@ function MinesController(player) {
 	this.detonate = function(mine) {
 		if (isBombCanDetonated)
 			this.isGameOver = mine;
-		if (isDebugMode)
-			console.log("mine x=" + mine.x + " detonated!");
 		this.pool.release(mine);
 	}
 
@@ -85,25 +80,26 @@ function Mine(x, controller) {
 	this.isUsed = true;
 	this.controller = controller;
 	this.x = x;
-	this.detonationTimer = 0; // in seconds
+	this.detonationTimer = new Timer(0.25); // in seconds
 	this.status = controller.STATUS_SLEEP;
 
 	this.update = function(elapsed) {
 		this.x -= world.speed * elapsed;
-		if (this.x < -controller.WIDTH)
+		if (this.x < -controller.WIDTH * 2){
 			this.isUsed = false;
+			this.detonationTimer.stop();
+			this.status = controller.STATUS_SLEEP;
+		}
 		if (this.status == controller.STATUS_ACTIVATED){
-			this.detonationTimer-= elapsed;
-			if (this.detonationTimer <= 0)
+			this.detonationTimer.update(elapsed);
+			if (this.detonationTimer.isFinished)
 				this.controller.detonate(this);
 		}
 	}
 
 	this.activate = function() {
 		if (this.status == this.controller.STATUS_SLEEP){
-			if (isDebugMode)
-				console.log("mine on x=" + this.x + " activated!");
-			this.detonationTimer = this.controller.DETONATION_TIMER;
+			this.detonationTimer.start();
 			this.status = controller.STATUS_ACTIVATED;
 		}
 	}
@@ -115,7 +111,7 @@ function Mine(x, controller) {
 	this.reset = function(x){
 		this.isUsed = true;
 		this.x = x;
-		this.detonationTimer = 0;
+		this.detonationTimer.stop();
 		this.status = controller.STATUS_SLEEP;
 	}
 }

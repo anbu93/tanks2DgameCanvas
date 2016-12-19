@@ -68,4 +68,8 @@ function Timer(value) {
 		this.isFinished = false;
 	}
 
+	this.stop = function() {
+		this.current = 0;
+		this.isFinished = true;
+	}
 }

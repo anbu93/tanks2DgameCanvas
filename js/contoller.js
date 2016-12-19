@@ -8,8 +8,8 @@ function Controller() {
 		if (keyChar == "A") player.isMoveLeft = true;
 		if (keyChar == "D") player.isMoveRight = true;
 		// player cannon move (up/down)
-		if (keyChar == "W") player.isCannonUp = true;
-		if (keyChar == "S") player.isCannonDown = true;
+		if (keyChar == "W") player.cannon.isCannonUp = true;
+		if (keyChar == "S") player.cannon.isCannonDown = true;
 		// player actions (jump/fire)
 		if (keyChar == " ") player.jump();
 		if (keyChar == "F") player.fire();
@@ -22,8 +22,8 @@ function Controller() {
 		var keyChar = String.fromCharCode(keyID);
 		if (keyChar == "A") player.isMoveLeft = false;
 		if (keyChar == "D") player.isMoveRight = false;
-		if (keyChar == "W") player.isCannonUp = false;
-		if (keyChar == "S") player.isCannonDown = false;
+		if (keyChar == "W") player.cannon.isCannonUp = false;
+		if (keyChar == "S") player.cannon.isCannonDown = false;
 		e.preventDefault();
 	}
 
