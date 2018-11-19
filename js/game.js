@@ -7,10 +7,10 @@ var requestAnimFrame = window.requestAnimationFrame ||
 								window.mozRequestAnimationFrame ||
 								window.oRequestAnimationFrame ||
 								window.msRequestAnimationFrame;
-var frames_per_seconds = 300;
+var frames_per_seconds = 400;
 var elapsedSec =  1.0 / frames_per_seconds;
 // для разработчика
-var isDebugMode = true; //включает режим дебагинга (отображает коллайдеры)
+var isDebugMode = false; //включает режим дебагинга (отображает коллайдеры)
 var isBombCanDetonated = true; //выключает взрыв мин.
 
 function init() {
